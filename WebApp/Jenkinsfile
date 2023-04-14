@@ -11,7 +11,6 @@ pipeline {
                 echo 'Initial : Delete  containers and images'
                 dir('WebApp') {
                     echo "Current path is ${pwd()}"
-                    sh "docker-compose --version"
                     sh "docker --version"
                     sh "docker-compose down --rmi all --volumes || true"
                 }
