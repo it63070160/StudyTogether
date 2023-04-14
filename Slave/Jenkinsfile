@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+    environment {
+        DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+    }
+    stages {
+        stage('Trigged') {
+            steps {
+                echo "Hello $DOCKERHUB_CREDENTIALS_USR from Slave"
+            }
+        }
+        stage('Login Stage') {
+          steps {
+            echo "Login : Logging in . . ."
+            // sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
+                bat 'docker login -u %DOCKERHUB_USR% -p %DOCKERHUB_PSW%'
+            }
+          }
+        }
+        stage('Stop Stage') {
+            steps {
+                echo "Stop : Stop running image . . ."
+                sh "docker-compose stop"
+            }
+        }
+        stage('Remove Stage') {
+            steps {
+                echo "Remove : Removing image . . ."
+                sh "docker-compose down --rmi all --volumes || true"
+            }
+        }
+        stage('Pull Stage') {
+            steps {
+                echo "Pull : pulling image from dockerhub . . ."
+                sh "docker-compose pull"
+            }
+        }
+        stage('Install Stage') {
+            steps {
+                echo "Install : Installing image to EC2 . . ."
+                sh "docker-compose up -d"
+            }
+        }
+    }
+}
