@@ -2,14 +2,14 @@ version: "3.9"
 
 services:
   frontend:
-    build: ./WebApp/frontend
+    build: ./frontend
     ports:
       - "8081:5000"
     depends_on:
       - db
 
   backend:
-    build: ./WebApp/backend
+    build: ./backend
     ports:
       - "8088:8000"
     depends_on:
