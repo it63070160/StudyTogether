@@ -18,8 +18,8 @@ function addRequest(receiver, token, course){
     return axios.get(REQUEST_API_BASE_URL+"add/"+receiver+"/"+token+"/"+course);
 }
 
-function removeRequestByID(id){
-    return axios.get(REQUEST_API_BASE_URL+"del/"+id);
+function removeRequestByReceiver(token, requestID){
+    return axios.get(REQUEST_API_BASE_URL+"del/"+token+"/"+requestID);
 }
 
 function removeRequest(receiver, token, course){

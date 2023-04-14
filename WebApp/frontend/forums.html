@@ -18,13 +18,14 @@
 <body>
     <div id="app">
         <!-- Comments Modal -->
-        <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsModalLabel" aria-hidden="true" ref="vuemodal">
+            <div class="modal-dialog modal-dialog-scrollable modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
                         <div class="col">
                             <div class="row">
-                                <h1 class="modal-title fs-5" id="commentsModalLabel">{{'{{forumModal.title}}'}}</h1>
+                                <h1 class="modal-title fs-5" id="commentsModalLabel" v-if="forumModal.title.length>50">{{'{{forumModal.title.slice(0, 50)}}'}}...</h1>
+                                <h1 class="modal-title fs-5" id="commentsModalLabel" v-else>{{'{{forumModal.title}}'}}</h1>
                             </div>
                             <div class="row">
                                 <small class="text-body-secondary" v-if="forumModal.anonymous == true">
@@ -45,15 +46,18 @@
                     <div class="modal-body">
                         <div class="forumContent">
                             <p class="card-text">{{'{{forumModal.content}}'}}</p>
-                            <!-- <img src="{{ url_for('static', filename = 'img/{{forumModal.imagePath}}') }}"> -->
+                            <div class="image" v-if="forumModal.imagePath.length > 0">
+                                <img v-for="path in forumModal.imagePath" :src="path">
+                            </div>
                         </div>
-                        <div class="forumAction mt-3 mb-3">
+                        <hr>
+                        <div class="forumAction mt-2 mb-2">
                             <div class="row text-center">
                                 <div class="col">
-                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like</a>
+                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forumModal.forum_like > 0">({{'{{forumModal.forum_like}}'}})</span></a>
                                 </div>
                                 <div class="col">
-                                    <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;">(x)</span></a>
+                                    <a class="list-group-item"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;" v-if="forumModal.commentCount > 0">({{'{{forumModal.commentCount}}'}})</span></a>
                                 </div>
                                 <div class="col">
                                     <a class="list-group-item"><i class="fa-regular fa-bookmark"></i>  Save</a>
@@ -62,27 +66,41 @@
                         </div>
                         <hr>
                         <div class="forumComments">
+                            <div class="form-check form-switch form-check-reverse" style="float: right;">
+                                <input class="form-check-input" type="checkbox" role="switch" id="commentAnnonymous" v-model="commentAnnonymous">
+                                <label class="form-check-label" for="flexSwitchCheckDefault">Anonymous</label>
+                            </div>
                             <div class="input-group">
-                                <textarea class="form-control" rows="1" placeholder="Write a comment..."></textarea>
-                                <button class="input-group-btn btn btn-success">Comment</button>
+                                <textarea class="form-control" rows="1" placeholder="Write a comment..." v-model="commentInput"></textarea>
+                                <button class="input-group-btn btn btn-success" @click="handleComment(forumModal.id)">Comment</button>
                             </div>
                             <div class="allComments mt-3">
-                                <div class="comment mb-3">
+                                <div class="comment mb-3" v-for="comment in forumModalCommentList.slice().reverse()">
                                     <div class="commentFrom">
-                                        <img src="./static/img/boyProfile.png" style="width: 40px; height: 40px;">
-                                        <span style="font-weight: bold;">comment name</span><small class="text-body-secondary"> - 3 mins ago</small>
+                                        <img src="./static/img/anonymousProfile.png" style="width: 40px; height: 40px;" v-if="comment.anonymous==true">
+                                        <img src="./static/img/boyProfile.png" style="width: 40px; height: 40px;" v-else-if="comment.ownerName.indexOf('นาย')>=0">
+                                        <img src="./static/img/girlProfile.png" style="width: 40px; height: 40px;" v-else>
+                                        <span style="font-weight: bold;" v-if="comment.anonymous==true">&nbsp;Anonymous</span>
+                                        <span style="font-weight: bold;" v-else>&nbsp;{{'{{comment.ownerName}}'}}</span>
+                                        <small class="text-body-secondary"> - {{'{{comment.posted_at}}'}}</small>
+                                        <div class="commentActionContainer" v-if="comment.owner==userID && (confirmRemoveList.indexOf(comment.id) < 0 && confirmEditList.indexOf(comment.id) < 0)">
+                                            <i class="fa-regular fa-pen-to-square commentEdit me-3" @click="handleEditComment(comment.id, comment.content)"></i>
+                                            <i class="fa-regular fa-trash-can commentRemove" @click="handleRemoveComment(comment.id)"></i>
+                                        </div>
+                                        <div class="commentActionContainer" v-else-if="comment.owner==userID && (confirmRemoveList.indexOf(comment.id)>=0 || confirmEditList.indexOf(comment.id)>=0)">
+                                            <div v-if="confirmRemoveList.indexOf(comment.id)>=0">
+                                                <i class="fa-solid fa-check commentCheck me-3" @click="confirmRemoveComment(comment.id)"></i>
+                                                <i class="fa-solid fa-xmark commentRemove" @click="handleRemoveComment(comment.id)"></i>
+                                            </div>
+                                            <div v-else-if="confirmEditList.indexOf(comment.id)>=0">
+                                                <i class="fa-solid fa-check commentCheck me-3" @click="confirmEditComment(comment.id)"></i>
+                                                <i class="fa-solid fa-xmark commentRemove" @click="handleEditComment(comment.id)"></i>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="commentContent">
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ipsum purus, dignissim quis euismod et, mollis eu turpis. Pellentesque quis aliquam massa. Aenean finibus nisl odio, in venenatis sem accumsan eu. Nam neque massa, tincidunt at fermentum a, viverra eu lorem. Suspendisse tellus velit, ultrices eu congue id, congue non tortor. Praesent eget erat ac arcu molestie eleifend. Ut faucibus venenatis viverra. Quisque vitae velit turpis. Sed vitae felis at ligula ullamcorper condimentum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec ullamcorper nec justo vel tempor. Integer rhoncus, orci sit amet consequat bibendum, purus tortor sodales eros, ut egestas tortor orci semper dolor. Morbi eget venenatis ex.
-                                    </div>
-                                </div>
-                                <div class="comment">
-                                    <div class="commentFrom">
-                                        <img src="./static/img/boyProfile.png" style="width: 40px; height: 40px;">
-                                        <span style="font-weight: bold;">comment name</span><small class="text-body-secondary"> - 3 mins ago</small>
-                                    </div>
-                                    <div class="commentContent">
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ipsum purus, dignissim quis euismod et, mollis eu turpis. Pellentesque quis aliquam massa. Aenean finibus nisl odio, in venenatis sem accumsan eu. Nam neque massa, tincidunt at fermentum a, viverra eu lorem. Suspendisse tellus velit, ultrices eu congue id, congue non tortor. Praesent eget erat ac arcu molestie eleifend. Ut faucibus venenatis viverra. Quisque vitae velit turpis. Sed vitae felis at ligula ullamcorper condimentum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec ullamcorper nec justo vel tempor. Integer rhoncus, orci sit amet consequat bibendum, purus tortor sodales eros, ut egestas tortor orci semper dolor. Morbi eget venenatis ex.
+                                        <span v-if="confirmEditList.indexOf(comment.id)<0">{{'{{comment.content}}'}}</span>
+                                        <span v-else-if="confirmEditList.indexOf(comment.id)>=0"><textarea class="form-control" rows="1" placeholder="Write a comment..." v-model="commentEditInput"></textarea></span>
                                     </div>
                                 </div>
                             </div>
@@ -115,7 +133,7 @@
                             <a class="nav-link active">Forums</a>
                         </li>
                         <li class="nav-item" v-if="courseName!='myCourse'">
-                            <a class="nav-link">Find Groups</a>
+                            <a class="nav-link" @click="findGroups_navigation">Find Groups</a>
                         </li>
                         <li class="nav-item" v-if="courseName!='myCourse'">
                             <a class="nav-link disabled">Leaderboard</a>
@@ -154,8 +172,8 @@
                         </li>
                     </ul>
                 </div>
-                <div class="card-body overflow-auto">
-                    <div class="card h-100" v-for="(forum, index) in forumList">
+                <div class="card-body h-100 overflow-auto">
+                    <div class="card h-100 mb-3" v-for="forum in forumList">
                         <div class="card-body">
                             <h5 class="card-title">{{'{{forum.title}}'}} </h5>
                             <small class="text-body-secondary" v-if="forum.anonymous == true">Posted by Anonymous <img src="{{ url_for('static', filename = 'img/anonymousProfile.png') }}" style="width: 25px; height: 25px;"> - {{'{{forum.posted_at}}'}}</small>
@@ -166,17 +184,17 @@
                                 - {{'{{forum.posted_at}}'}}
                             </small>
                             <p class="card-text">{{'{{forum.content}}'}}</p>
-                            <div class="image">
-                                <img :src="imagePath">
+                            <div class="image" v-if="forum.imagePath.length > 0">
+                                <img v-for="path in forum.imagePath" :src="path">
                             </div>
                         </div>
                         <div class="card-footer">
                             <div class="row">
                                 <div class="col">
-                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like</a>
+                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
                                 </div>
                                 <div class="col">
-                                    <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal" @click="fetchModalInfo(index)"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;">(x)</span></a>
+                                    <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal" @click="fetchModalInfo(forum.id)"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;" v-if="forum.commentCount > 0">({{'{{forum.commentCount}}'}})</span></a>
                                 </div>
                                 <div class="col">
                                     <a class="list-group-item"><i class="fa-regular fa-bookmark"></i>  Save</a>
@@ -205,12 +223,19 @@
                         'title': '',
                         'content': '',
                         'imagePath': '',
+                        'forum_like': 0,
                         'ownerID': '',
                         'ownerName': '',
                         'anonymous': false,
-                        'posted_at': ''
+                        'posted_at': '',
+                        'commentCount': 0
                     },
-                    imagePath: '',
+                    forumModalCommentList: [],
+                    commentInput: "",
+                    commentEditInput: "",
+                    commentAnnonymous: false,
+                    confirmRemoveList: [],
+                    confirmEditList: [],
                     userID: "",
                     fullname: "",
                     fullCourseName: [
@@ -226,6 +251,50 @@
                     this.myCourseList = []
                     localStorage.removeItem("authToken")
                     window.location.href = "/"
+                },
+                handleComment(forumID){
+                    addComment({'forumID':forumID, 'content':this.commentInput, 'token':localStorage.getItem("authToken"), 'anonymous':this.commentAnnonymous}).then((response)=>{
+                        if(response.data == true){
+                            this.commentInput = ''
+                            this.commentAnnonymous = false
+                            this.getForum(forumID)
+                            getForumComments(forumID).then((response)=>{
+                                this.forumModalCommentList = [...response.data]
+                            })
+                        }
+                    })
+                },
+                handleRemoveComment(commentID){
+                    if(this.confirmRemoveList.indexOf(commentID) >= 0){
+                        this.confirmRemoveList.splice(this.confirmRemoveList.indexOf(commentID), 1)
+                    }else{
+                        this.confirmRemoveList.push(commentID)
+                    }
+                },
+                confirmRemoveComment(commentID){
+                    removeComment(commentID).then((response)=>{
+                        if(response.data == true){
+                            this.getForumComments(this.forumModal.id)
+                            this.confirmRemoveList.splice(this.confirmRemoveList.indexOf(commentID), 1)
+                        }
+                    })
+                },
+                handleEditComment(commentID, commentContent){
+                    if(this.confirmEditList.indexOf(commentID) >= 0){
+                        this.confirmEditList.splice(this.confirmEditList.indexOf(commentID), 1)
+                    }else{
+                        this.confirmEditList.push(commentID)
+                        this.commentEditInput = commentContent
+                    }
+                },
+                confirmEditComment(commentID){
+                    editComment({'commentID': commentID, 'content':this.commentEditInput, 'token':localStorage.getItem("authToken")}).then((response)=>{
+                        if(response.data == true){
+                            this.getForumComments(this.forumModal.id)
+                            this.confirmEditList.splice(this.confirmEditList.indexOf(commentID), 1)
+                            this.commentEditInput = ""
+                        }
+                    })
                 },
                 checkURL(){
                     window.history.pushState("", "Study Together - Forums", (document.URL +"?course="+this.courseName));
@@ -258,19 +327,69 @@
                 },
                 getForums(){
                     getForums(this.courseName).then((response)=>{
-                        this.forumList = [...response.data]
-                        this.imagePath = "/static/img/"+response.data[0].imagePath[0]
+                        this.forumList = []
+                        response.data.forEach(value => {
+                            var newPath = [];
+                            for(let i=0; i<value.imagePath.length; i++){
+                                newPath.push("/static/img/"+value.imagePath[i])
+                            }
+                            this.forumList.push({
+                                'id': value.id,
+                                'title': value.title,
+                                'content': value.content,
+                                'imagePath': newPath,
+                                'forum_like': value.forum_like,
+                                'ownerID': value.ownerID,
+                                'ownerName': value.ownerName,
+                                'anonymous': value.anonymous,
+                                'posted_at': value.posted_at,
+                                'commentCount': value.commentCount
+                            })
+                        });
                     })
                 },
-                fetchModalInfo(index){
-                    this.forumModal = this.forumList[index]
+                getForum(forumID){
+                    getForum(forumID).then((response)=>{
+                        var newPath = [];
+                        for(let i=0; i<response.data.imagePath.length; i++){
+                            newPath.push("/static/img/"+response.data.imagePath[i])
+                        }
+                        this.forumModal = {
+                            'id': response.data.id,
+                            'title': response.data.title,
+                            'content': response.data.content,
+                            'imagePath': newPath,
+                            'forum_like': response.data.forum_like,
+                            'ownerID': response.data.ownerID,
+                            'ownerName': response.data.ownerName,
+                            'anonymous': response.data.anonymous,
+                            'posted_at': response.data.posted_at,
+                            'commentCount': response.data.commentCount
+                        }
+                    })
+                },
+                getForumComments(forumID){
+                    getForumComments(forumID).then((response)=>{
+                        this.forumModalCommentList = [...response.data]
+                    })
+                },
+                fetchModalInfo(forumID){
+                    this.getForumComments(forumID)
+                    this.getForum(forumID)
                 },
                 home_navigation(){
                     window.location.href = "/?course="+this.courseName
-                }
+                },
+                findGroups_navigation(){
+                    window.location.href = "/findGroups?course="+this.courseName
+                },
             },
             mounted(){
                 this.checkToken()
+                const commentsModal = document.getElementById('commentsModal')
+                commentsModal.addEventListener('hidden.bs.modal', event => {
+                    this.getForums()
+                })
             }
         }).mount('#app')
     </script>
