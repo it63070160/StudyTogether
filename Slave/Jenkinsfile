@@ -20,26 +20,34 @@ pipeline {
         }
         stage('Stop Stage') {
             steps {
-                echo "Stop : Stop running image . . ."
-                sh "docker-compose stop"
+                dir('WebApp') {
+                    echo "Stop : Stop running image . . ."
+                    sh "docker-compose stop"
+                }
             }
         }
         stage('Remove Stage') {
             steps {
-                echo "Remove : Removing image . . ."
-                sh "docker-compose down --rmi all --volumes || true"
+                dir('WebApp') {
+                    echo "Remove : Removing image . . ."
+                    sh "docker-compose down --rmi all --volumes || true"
+                }
             }
         }
         stage('Pull Stage') {
             steps {
-                echo "Pull : pulling image from dockerhub . . ."
-                sh "docker-compose pull"
+                dir('WebApp') {
+                    echo "Pull : pulling image from dockerhub . . ."
+                    sh "docker-compose pull"
+                }
             }
         }
         stage('Install Stage') {
             steps {
-                echo "Install : Installing image to EC2 . . ."
-                sh "docker-compose up -d"
+                dir('WebApp') {
+                    echo "Install : Installing image to EC2 . . ."
+                    sh "docker-compose up -d"
+                }
             }
         }
     }
