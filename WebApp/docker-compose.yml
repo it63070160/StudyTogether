@@ -2,14 +2,14 @@ version: "3.9"
 
 services:
   frontend:
-    build: ./frontend
+    build: ./WebApp/frontend
     ports:
       - "8081:5000"
     depends_on:
       - db
 
   backend:
-    build: ./backend
+    build: ./WebApp/backend
     ports:
       - "8088:8000"
     depends_on:
@@ -21,4 +21,4 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: myapp
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./WebApp/db/init.sql:/docker-entrypoint-initdb.d/init.sql
