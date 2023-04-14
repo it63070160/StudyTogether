@@ -1,0 +1,278 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/d65ed2b465.js" crossorigin="anonymous"></script>
+    <!-- vue script -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.2.0/dist/axios.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename = 'js/Students.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename = 'js/Requests.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename = 'js/Forums.js') }}"></script>
+    <title>Study Together - Forums</title>
+</head>
+<body>
+    <div id="app">
+        <!-- Comments Modal -->
+        <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="col">
+                            <div class="row">
+                                <h1 class="modal-title fs-5" id="commentsModalLabel">{{'{{forumModal.title}}'}}</h1>
+                            </div>
+                            <div class="row">
+                                <small class="text-body-secondary" v-if="forumModal.anonymous == true">
+                                    Posted by Anonymous
+                                    <img src="{{ url_for('static', filename = 'img/anonymousProfile.png') }}" style="width: 25px; height: 25px;">
+                                    - {{'{{forumModal.posted_at}}'}}
+                                </small>
+                                <small class="text-body-secondary" v-else>
+                                    Posted by {{'{{forumModal.ownerName}}'}} 
+                                    <img src="{{ url_for('static', filename = 'img/boyProfile.png') }}" style="width: 25px; height: 25px;" v-if="forumModal.ownerName.indexOf('นาย')>=0">
+                                    <img src="{{ url_for('static', filename = 'img/girlProfile.png') }}" style="width: 25px; height: 25px;" v-else>
+                                    - {{'{{forumModal.posted_at}}'}}
+                                </small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="forumContent">
+                            <p class="card-text">{{'{{forumModal.content}}'}}</p>
+                            <!-- <img src="{{ url_for('static', filename = 'img/{{forumModal.imagePath}}') }}"> -->
+                        </div>
+                        <div class="forumAction mt-3 mb-3">
+                            <div class="row text-center">
+                                <div class="col">
+                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like</a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;">(x)</span></a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="forumComments">
+                            <div class="input-group">
+                                <textarea class="form-control" rows="1" placeholder="Write a comment..."></textarea>
+                                <button class="input-group-btn btn btn-success">Comment</button>
+                            </div>
+                            <div class="allComments mt-3">
+                                <div class="comment mb-3">
+                                    <div class="commentFrom">
+                                        <img src="./static/img/boyProfile.png" style="width: 40px; height: 40px;">
+                                        <span style="font-weight: bold;">comment name</span><small class="text-body-secondary"> - 3 mins ago</small>
+                                    </div>
+                                    <div class="commentContent">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ipsum purus, dignissim quis euismod et, mollis eu turpis. Pellentesque quis aliquam massa. Aenean finibus nisl odio, in venenatis sem accumsan eu. Nam neque massa, tincidunt at fermentum a, viverra eu lorem. Suspendisse tellus velit, ultrices eu congue id, congue non tortor. Praesent eget erat ac arcu molestie eleifend. Ut faucibus venenatis viverra. Quisque vitae velit turpis. Sed vitae felis at ligula ullamcorper condimentum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec ullamcorper nec justo vel tempor. Integer rhoncus, orci sit amet consequat bibendum, purus tortor sodales eros, ut egestas tortor orci semper dolor. Morbi eget venenatis ex.
+                                    </div>
+                                </div>
+                                <div class="comment">
+                                    <div class="commentFrom">
+                                        <img src="./static/img/boyProfile.png" style="width: 40px; height: 40px;">
+                                        <span style="font-weight: bold;">comment name</span><small class="text-body-secondary"> - 3 mins ago</small>
+                                    </div>
+                                    <div class="commentContent">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ipsum purus, dignissim quis euismod et, mollis eu turpis. Pellentesque quis aliquam massa. Aenean finibus nisl odio, in venenatis sem accumsan eu. Nam neque massa, tincidunt at fermentum a, viverra eu lorem. Suspendisse tellus velit, ultrices eu congue id, congue non tortor. Praesent eget erat ac arcu molestie eleifend. Ut faucibus venenatis viverra. Quisque vitae velit turpis. Sed vitae felis at ligula ullamcorper condimentum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec ullamcorper nec justo vel tempor. Integer rhoncus, orci sit amet consequat bibendum, purus tortor sodales eros, ut egestas tortor orci semper dolor. Morbi eget venenatis ex.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color:skyblue !important;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#" @click="courseName='myCourse'">Study Together</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"></a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <select class="nav-link dropdown-toggle" v-model="courseName" @change="checkURL">
+                                <option value="myCourse" selected disabled style="text-align: center;">My Course</option>
+                                <option v-for="course in myCourseList" :value="course">{{'{{fullCourseName.filter((value)=>(value.shortName==course))[0].longName}}'}}</option>
+                            </select>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link" @click="home_navigation">Home</a>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link active">Forums</a>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link">Find Groups</a>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link disabled">Leaderboard</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown-center">
+                          <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            it{{'{{userID}}'}}
+                          </button>
+                          <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><a class="dropdown-item" href="#" style="color: red;" @click="handleLogout">Logout</a></li>
+                          </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container" v-if="courseName=='myCourse'">
+            <h1>Welcome to Study Together Web Application</h1>
+        </div>
+        <div class="container" v-if="courseName!='myCourse'">
+            <center><h1 class="mt-5 mb-5">{{'{{fullCourseName.filter((value)=>(value.shortName==courseName))[0].longName}}'}} - Forums</h1></center>
+            <div class="card text-center">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                        <a class="nav-link active" aria-current="true" href="#">Forums</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="#">My Forums</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link">Saved</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body overflow-auto">
+                    <div class="card h-100" v-for="(forum, index) in forumList">
+                        <div class="card-body">
+                            <h5 class="card-title">{{'{{forum.title}}'}} </h5>
+                            <small class="text-body-secondary" v-if="forum.anonymous == true">Posted by Anonymous <img src="{{ url_for('static', filename = 'img/anonymousProfile.png') }}" style="width: 25px; height: 25px;"> - {{'{{forum.posted_at}}'}}</small>
+                            <small class="text-body-secondary" v-else>
+                                Posted by {{'{{forum.ownerName}}'}} 
+                                <img src="{{ url_for('static', filename = 'img/boyProfile.png') }}" style="width: 25px; height: 25px;" v-if="forum.ownerName.indexOf('นาย')>=0">
+                                <img src="{{ url_for('static', filename = 'img/girlProfile.png') }}" style="width: 25px; height: 25px;" v-else>
+                                - {{'{{forum.posted_at}}'}}
+                            </small>
+                            <p class="card-text">{{'{{forum.content}}'}}</p>
+                            <div class="image">
+                                <img :src="imagePath">
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col">
+                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like</a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal" @click="fetchModalInfo(index)"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;">(x)</span></a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-body-secondary">
+                    <button class="btn btn-outline-success" style="float: right;" @click="">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script>
+        const { createApp } = Vue
+        createApp({
+            data() {
+                return {
+                    courseName: 'myCourse',
+                    myCourseList: [],
+                    forumList: [],
+                    forumModal: {
+                        'id': 0,
+                        'title': '',
+                        'content': '',
+                        'imagePath': '',
+                        'ownerID': '',
+                        'ownerName': '',
+                        'anonymous': false,
+                        'posted_at': ''
+                    },
+                    imagePath: '',
+                    userID: "",
+                    fullname: "",
+                    fullCourseName: [
+                        {"longName":"Software Development Tools and Environments", "shortName":"SDTE"},
+                        {"longName":"Software Verification and Validation", "shortName":"SVV"},
+                        {"longName":"Cloud-Based Enterprise Application Development", "shortName":"CBEAD"},
+                    ]
+                }
+            },
+            methods: {
+                handleLogout(){
+                    this.userID = ""
+                    this.myCourseList = []
+                    localStorage.removeItem("authToken")
+                    window.location.href = "/"
+                },
+                checkURL(){
+                    window.history.pushState("", "Study Together - Forums", (document.URL +"?course="+this.courseName));
+                },
+                checkToken(){
+                    var token = localStorage.getItem('authToken')
+                    if(token){
+                        checkToken({token: token}).then((response)=>{
+                            if(response.data != false){
+                                this.userID = response.data.id
+                                this.fullname = response.data.fullname
+                                this.myCourseList = [...response.data.course]
+                                if(document.URL.indexOf("?course=")>=0){
+                                    var URLcourse = document.URL.slice(document.URL.indexOf("?course=")+8, document.URL.length)
+                                    if(this.myCourseList.indexOf(URLcourse) >= 0){
+                                        this.courseName = URLcourse
+                                        this.getForums()
+                                    }else{
+                                        this.courseName = "myCourse"
+                                        window.history.pushState("", "Study Together", (document.URL.slice(0, document.URL.indexOf("?"))));
+                                    }
+                                }
+                            }else{
+                                this.handleLogout()
+                            }
+                        })
+                    }else{
+                        this.handleLogout()
+                    }
+                },
+                getForums(){
+                    getForums(this.courseName).then((response)=>{
+                        this.forumList = [...response.data]
+                        this.imagePath = "/static/img/"+response.data[0].imagePath[0]
+                    })
+                },
+                fetchModalInfo(index){
+                    this.forumModal = this.forumList[index]
+                },
+                home_navigation(){
+                    window.location.href = "/?course="+this.courseName
+                }
+            },
+            mounted(){
+                this.checkToken()
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel='stylesheet' href="{{ url_for('static',filename='css/style.css') }}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/d65ed2b465.js" crossorigin="anonymous"></script>
+    <!-- vue script -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.2.0/dist/axios.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename = 'js/Students.js') }}"></script>
+    <title>Study Together</title>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="loginModalLabel">Login</h1>
+                        <button type="button" id="loginClose" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="loginForm_Container">
+                            <form>
+                                <div class="mb-3 row">
+                                    <label for="validationServerUsername" class="form-label">Student ID</label>
+                                    <div class="input-group has-validation">
+                                        <input type="text" class="form-control" :class="{'is-invalid': invalidLoginID}" v-model="loginID" required>
+                                        <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                                            กรุณากรอกรหัสประจำตัวนักศึกษา
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
+                                    <label for="inputPassword5" class="form-label">Password</label>
+                                    <div class="input-group has-validation">
+                                        <input type="password" class="form-control" :class="{'is-invalid': invalidLoginPassword}" v-model="loginPassword" required>
+                                        <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                                            กรุณากรอกรหัสผ่าน
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <p style="color: red;">{{'{{errorMessage_login}}'}}</p>
+                        <button type="button" class="btn btn-success" @click="handleLogin">Login</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- SignUp Modal -->
+        <div class="modal fade" id="signUpModal" tabindex="-1" aria-labelledby="signUpModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="signUpModalLabel">Sign Up</h1>
+                        <button type="button" id="signUpClose" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="signUpForm_Container">
+                            <form>
+                                <div class="mb-3 row">
+                                    <label for="validationServerUsername" class="form-label">Student ID</label>
+                                    <div class="input-group has-validation">
+                                        <input type="text" class="form-control" :class="{'is-invalid': invalidSignUpID}" v-model="signUpID" required>
+                                        <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                                            กรุณากรอกรหัสประจำตัวนักศึกษา
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
+                                    <label for="inputPassword5" class="form-label">Password</label>
+                                    <div class="input-group has-validation">
+                                        <input type="password" class="form-control" :class="{'is-invalid': invalidSignUpPassword}" v-model="signUpPassword" required>
+                                        <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                                            กรุณากรอกรหัสผ่าน
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
+                                    <label for="inputPassword5" class="form-label">Fullname (Ex. Firstname Lastname)</label>
+                                    <div class="input-group has-validation">
+                                        <input type="text" class="form-control" :class="{'is-invalid': invalidSignUpFullname}" v-model="signUpFullname" required>
+                                        <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                                            กรุณากรอกชื่อ-นามสกุล (ตัวอย่าง: ชื่อ นามสกุล)
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <p style="color: red;">{{'{{errorMessage_signup}}'}}</p>
+                        <button type="button" class="btn btn-success" @click="handleSignUp">Sign Up</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color:skyblue !important;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#" @click="courseName='myCourse'">Study Together</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"></a>
+                        </li>
+                        <li class="nav-item dropdown" v-if="myCourseList.length == 0">
+                            <select class="nav-link dropdown-toggle" v-model="courseName" disabled>
+                                <option value="myCourse" selected disabled style="text-align: center;">Please Login or Join a course</option>
+                            </select>
+                        </li>
+                        <li class="nav-item dropdown" v-else>
+                            <select class="nav-link dropdown-toggle" v-model="courseName" @change="checkURL">
+                                <option value="myCourse" selected disabled style="text-align: center;">My Course</option>
+                                <option v-for="course in myCourseList" :value="course">{{'{{fullCourseName.filter((value)=>(value.shortName==course))[0].longName}}'}}</option>
+                            </select>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link active">Home</a>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link" @click="forums_navigation">Forums</a>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link" @click="findGroups_navigation">Find Groups</a>
+                        </li>
+                        <li class="nav-item" v-if="courseName!='myCourse'">
+                            <a class="nav-link disabled">Leaderboard</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav" v-if="userID!=''">
+                        <li class="nav-item dropdown-center">
+                          <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            it{{'{{userID}}'}}
+                          </button>
+                          <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><a class="dropdown-item" href="#" style="color: red;" @click="handleLogout">Logout</a></li>
+                          </ul>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav" v-else>
+                        <li class="nav-item dropdown-center">
+                            <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                Login / Sign Up
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign Up</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container" v-if="courseName=='myCourse'">
+            <h1>Welcome to Study Together Web Application</h1>
+        </div>
+        <div class="container" v-if="courseName!='myCourse'">
+            <center><h1 class="mt-5">{{'{{fullCourseName.filter((value)=>(value.shortName==courseName))[0].longName}}'}}</h1></center>
+            <div class="card text-center border-danger h-50">
+                <div class="card-header">
+                    📣 Announcements
+                </div>
+                <div class="card-body overflow-auto" v-if="courseName=='SDTE'">
+                    <a class="sticky-top" href="#" target="_blank">
+                        <div class="card text-bg-secondary border-warning mb-3" style="background-color: #510785 !important;">
+                            <div class="card-header">
+                                <i class="fa-brands fa-google"></i> Google Form <i class="fa-solid fa-thumbtack" style="color: #ff0019; float: right;"></i>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Google Form สำหรับโหวต<span class="rainbow" style="font-size: 2rem;">พวกเรา</span></p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="https://github.com/Tuchsanai/SOFTWARE-DEVELOPMENT-TOOLS-AND-ENVIRONMENTS" target="_blank">
+                        <div class="card text-bg-secondary mb-3">
+                            <div class="card-header">
+                                <i class="fa-brands fa-github"></i> Github
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Github สำหรับดาวน์โหลดสไลด์หรือทำ LAB</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#">
+                        <div class="card text-bg-success mb-3">
+                            <div class="card-header">
+                                <i class="fa-brands fa-line"></i> Line Group
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">สำหรับการพูดคุยต่างๆ</p>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="card text-bg-secondary mb-3" style="background-color: #510785 !important;">
+                        <div class="card-header">
+                            <i class="fa-brands fa-google"></i> Google Form
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">ลิงก์สำหรับส่งงาน LAB</p>
+                            <a href="#">Week 8</a><br>
+                            <a href="#">Week 9</a><br>
+                            <a href="#">Week 10</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body overflow-auto" v-if="courseName=='SVV'">
+                    <a href="#">
+                        <div class="card text-bg-secondary mb-3" style="background-color: #2D8CFF !important;">
+                            <div class="card-header">
+                                <i class="fa-solid fa-earth-asia"></i> แจ้งวันเรียนออนไลน์
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">เรียนออนไลน์ในวันจันทร์ที่ 17 เมษายน 2566</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="card-body overflow-auto" v-if="courseName=='CBEAD'">
+                    <a href="#">
+                        <div class="card text-bg-secondary mb-3" style="background-color: #2D8CFF !important;">
+                            <div class="card-header">
+                                <i class="fa-solid fa-earth-asia"></i> แจ้งวันเรียนออนไลน์
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">เรียนออนไลน์ในวันพุธที่ 12 เมษายน 2566</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="row align-items-start" id="cardNavigationGroup">
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    <div class="col">
+                        <div class="card border-primary h-100" @click="forums_navigation">
+                            <div class="card-body">
+                                <h5 class="card-title">Forums</h5>
+                                <p class="card-text">สำหรับการพูดคุย ตั้งคำถาม ตอบข้อสงสัย กับอาจารย์ประจำวิชาหรือระหว่างนักศึกษา</p>
+                            </div>
+                            <div class="card-footer">
+                                <small class="text-body-secondary">
+                                    Popular Forum: 
+                                    <cite title="Created by it63070999">
+                                        <a href="#" v-if="courseName=='SDTE'">{{'{{popularForum_SDTE}}'}}</a>
+                                        <a href="#" v-if="courseName=='SVV'">{{'{{popularForum_SVV}}'}}</a>
+                                        <a href="#" v-if="courseName=='CBEAD'">{{'{{popularForum_CBEAD}}'}}</a>
+                                    </cite>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-warning h-100" @click="findGroups_navigation">
+                            <div class="card-body">
+                                <h5 class="card-title">Find Groups</h5>
+                                <p class="card-text">สำหรับนักศึกษาที่ต้องการหากลุ่ม</p>
+                            </div>
+                            <div class="card-footer">
+                                <small class="text-body-secondary" v-if="availableStudents>0">Available: <span style="color: green; font-weight: bold;">{{'{{availableStudents}}'}}</span> Students</small>
+                                <small class="text-body-secondary" v-else>Available: <span style="color: red; font-weight: bold;">{{'{{availableStudents}}'}}</span> Student</span></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-center border-danger h-100" id="scoreboard">
+                            <div class="card-header">
+                                Leaderboard
+                            </div>
+                            <div class="card-body">
+                                <blockquote class="blockquote mb-0">
+                                    <p>Coming Soon ...</p>
+                                </blockquote>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script>
+        const { createApp } = Vue
+        createApp({
+            data() {
+                return {
+                    courseName: 'myCourse',
+                    myCourseList: [],
+                    popularForum_SDTE: "ระหว่าง Kubernetes กับ Docker ผมจะเอาสมองส่วนไหนไปจำดีครับ ?",
+                    popularForum_SVV: "การหลับตาทดสอบเป็นการทดสอบแบบใด ?",
+                    popularForum_CBEAD: "การทำโปรเจกต์ให้ทำงานได้บนคลาวด์ ทำคลาวด์นี้หรือคลาวด์หลังดีคะ ?", 
+                    availableStudents: 0,
+                    userID: "",
+                    loginID: "",
+                    loginPassword: "",
+                    invalidLoginID: false,
+                    invalidLoginPassword: false,
+                    errorMessage_login: "",
+                    errorMessage_signup: "",
+                    signUpID: "",
+                    signUpPassword: "",
+                    signUpFullname: "",
+                    invalidSignUpID: false,
+                    invalidSignUpPassword: false,
+                    invalidSignUpFullname: false,
+                    fullCourseName: [
+                        {"longName":"Software Development Tools and Environments", "shortName":"SDTE"},
+                        {"longName":"Software Verification and Validation", "shortName":"SVV"},
+                        {"longName":"Cloud-Based Enterprise Application Development", "shortName":"CBEAD"},
+                    ]
+                }
+            },
+            methods: {
+                handleSignUp(){
+                    if(this.signUpID == ""){
+                        this.invalidSignUpID = true
+                    }else{
+                        this.invalidSignUpID = false
+                    }
+                    if(this.signUpPassword == ""){
+                        this.invalidSignUpPassword = true
+                    }else{
+                        this.invalidSignUpPassword = false
+                    }
+                    if(this.signUpFullname == ""){
+                        this.invalidSignUpFullname = true
+                    }else if(this.signUpFullname.indexOf(" ")<0){
+                        this.invalidSignUpFullname = true
+                    }else if((this.signUpFullname.indexOf(" ")==0 || this.signUpFullname.indexOf(" ")==this.signUpFullname.length-1)){
+                        this.invalidSignUpFullname = true
+                    }else{
+                        this.invalidSignUpFullname = false
+                    }
+                    if(this.invalidSignUpID != true && this.invalidSignUpPassword != true && this.invalidSignUpFullname != true){
+                        this.errorMessage_signup = ""
+                        signUp({id:this.signUpID, password:this.signUpPassword, fullname:this.signUpFullname}).then((response)=>{
+                            localStorage.setItem("authToken", response.data)
+                            document.getElementById("signUpClose").click()
+                            this.userID = this.signUpID
+                            this.signUpID = ""
+                            this.signUpPassword = ""
+                            this.getStudentData()
+                        })
+                    }
+                },
+                handleLogin(){
+                    if(this.loginID == ""){
+                        this.invalidLoginID = true
+                    }else{
+                        this.invalidLoginID = false
+                    }
+                    if(this.loginPassword == ""){
+                        this.invalidLoginPassword = true
+                    }else{
+                        this.invalidLoginPassword = false
+                    }
+                    if(this.invalidLoginID != true && this.invalidLoginPassword != true){
+                        this.errorMessage_login = ""
+                        authLogin({id:this.loginID, password:this.loginPassword}).then((response)=>{
+                            if(response.data == false){
+                                this.errorMessage_login = "รหัสนักศึกษาหรือรหัสผ่านไม่ถูกต้อง"
+                            }else{
+                                localStorage.setItem("authToken", response.data)
+                                document.getElementById("loginClose").click()
+                                this.getStudentData()
+                            }
+                        })
+                    }
+                },
+                handleLogout(){
+                    this.userID = ""
+                    this.myCourseList = []
+                    localStorage.removeItem("authToken")
+                    window.location.href = "/"
+                },
+                getStudentData(){
+                    getStudent(this.loginID).then((response)=>{
+                        this.userID = response.data.id
+                        this.myCourseList = [...response.data.course]
+                        this.loginID = ''
+                        this.loginPassword = ''
+                    })
+                },
+                getAvailableStudents(){
+                    getFindingCount(this.courseName).then((response)=>{
+                        this.availableStudents = response.data
+                    })
+                },
+                checkToken(){
+                    var token = localStorage.getItem('authToken')
+                    if(token){
+                        checkToken({token: token}).then((response)=>{
+                            if(response.data != false){
+                                this.userID = response.data.id
+                                this.myCourseList = [...response.data.course]
+                                if(document.URL.indexOf("?course=")>=0){
+                                    var URLcourse = document.URL.slice(document.URL.indexOf("?course=")+8, document.URL.length)
+                                    if(this.myCourseList.indexOf(URLcourse) >= 0){
+                                        this.courseName = URLcourse
+                                    }else{
+                                        this.courseName = "myCourse"
+                                        window.history.pushState("", "Study Together", (document.URL.slice(0, document.URL.indexOf("?"))));
+                                    }
+                                }
+                            }
+                        })
+                    }
+                },
+                checkURL(){
+                    this.getAvailableStudents()
+                    window.history.pushState("", "Study Together", (document.URL + "?course="+this.courseName));
+                },
+                findGroups_navigation(){
+                    window.location.href = "/findGroups?course="+this.courseName
+                },
+                forums_navigation(){
+                    window.location.href = "/forums?course="+this.courseName
+                }
+            },
+            mounted(){
+                this.checkToken()
+            },
+        }).mount('#app')
+      </script>
+</body>
+</html>
