@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import psycopg2
 import secrets
+import pytz
 import datetime
 
 app = FastAPI()
@@ -35,6 +36,47 @@ class signUpInfo(BaseModel):
 
 class authToken(BaseModel):
     token: str
+
+class commentInfo(BaseModel):
+    forumID: int
+    content: str
+    token: str
+    anonymous: bool
+
+class editCommentInfo(BaseModel):
+    commentID: int
+    content: str
+    token: str
+
+def calculate_time(time):
+    timestamp_str = time.strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = datetime.datetime.fromisoformat(timestamp_str)
+    now = datetime.datetime.now()
+    diff_seconds = int((now - timestamp).total_seconds())
+    if diff_seconds < 60:
+        # Less than a minute ago
+        result = f"{diff_seconds} secs ago"
+    elif diff_seconds < 60 * 60:
+        # Less than an hour ago
+        diff_minutes = int(diff_seconds / 60)
+        result = f"{diff_minutes} mins ago"
+    elif diff_seconds < 24 * 60 * 60:
+        # Less than a day ago
+        diff_hours = int(diff_seconds / (60 * 60))
+        result = f"{diff_hours} hours ago"
+    elif diff_seconds < 30 * 24 * 60 * 60:
+        # Less than a month ago
+        diff_days = int(diff_seconds / (24 * 60 * 60))
+        result = f"{diff_days} days ago"
+    elif diff_seconds < 365 * 24 * 60 * 60:
+        # Less than a year ago
+        diff_months = int(diff_seconds / (30 * 24 * 60 * 60))
+        result = f"{diff_months} months ago"
+    else:
+        # More than a year ago
+        diff_years = int(diff_seconds / (365 * 24 * 60 * 60))
+        result = f"{diff_years} years ago"
+    return result
 
 @app.post("/student/auth/login")
 async def authLogin(loginInfo: authStudent):
@@ -353,8 +395,8 @@ async def addRequest(receiver: str, token: str, course: str):
         cur.close()
         conn.close()
 
-@app.get("/request/del/{requestID}")
-async def removeRequestByID(requestID: int):
+@app.get("/request/del/{token}/{requestID}")
+async def removeRequestByReceiver(token: str, requestID: int):
     conn = psycopg2.connect(
         host="db",
         database="myapp",
@@ -362,8 +404,11 @@ async def removeRequestByID(requestID: int):
         password="postgres"
     )
     cur = conn.cursor()
-    try:       
-        cur.execute("DELETE FROM requests WHERE id=%s", (requestID,))
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken=%s", (token,))
+        receiver = cur.fetchone()[0]
+        if not receiver: return False
+        cur.execute("DELETE FROM requests WHERE id=%s AND receiver=%s", (requestID, receiver))
         conn.commit()
         return True
     except (Exception, psycopg2.DatabaseError):
@@ -428,6 +473,10 @@ async def getForums(course: str):
         rows = cur.fetchall()
         forums = []
         for row in rows:
+            cur.execute("SELECT COUNT(id) FROM forum_comments WHERE forum = %s", (row[0],))
+            commentCount = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(forum) FROM forum_likes WHERE forum = %s", (row[0],))
+            forumLikes = cur.fetchone()[0]
             cur.execute("SELECT fullname from students WHERE id = %s", (row[4],))
             fullname = cur.fetchone()[0]
             forum = {
@@ -435,13 +484,147 @@ async def getForums(course: str):
                 'title': row[1],
                 'content': row[2],
                 'imagePath': row[3],
+                'forum_like': forumLikes,
                 'ownerID': row[4],
                 'ownerName': fullname,
                 'anonymous': row[5],
-                'posted_at': row[6]
+                'posted_at': calculate_time(row[6]),
+                'commentCount': commentCount
             }
             forums.append(forum)
         return forums
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forum/{forumID}")
+async def getForum(forumID: int):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM forums WHERE id = %s", (forumID,))
+        row = cur.fetchone()
+        cur.execute("SELECT COUNT(id) FROM forum_comments WHERE forum = %s", (row[0],))
+        commentCount = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(forum) FROM forum_likes WHERE forum = %s", (row[0],))
+        forumLikes = cur.fetchone()[0]
+        cur.execute("SELECT fullname from students WHERE id = %s", (row[4],))
+        fullname = cur.fetchone()[0]
+        forum = {
+            'id': row[0],
+            'title': row[1],
+            'content': row[2],
+            'imagePath': row[3],
+            'forum_like': forumLikes,
+            'ownerID': row[4],
+            'ownerName': fullname,
+            'anonymous': row[5],
+            'posted_at': calculate_time(row[6]),
+            'commentCount': commentCount
+        }
+        return forum
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forum/comments/{forumID}")
+async def getForumComments(forumID: int):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM forum_comments WHERE forum = %s", (forumID,))
+        rows = cur.fetchall()
+        comments = []
+        for row in rows:
+            cur.execute("SELECT fullname from students WHERE id = %s", (row[3],))
+            fullname = cur.fetchone()[0]
+            comment = {
+                'id': row[0],
+                'forum': row[1],
+                'content': row[2],
+                'owner': row[3],
+                'ownerName': fullname,
+                'anonymous': row[4],
+                'posted_at': calculate_time(row[5])
+            }
+            comments.append(comment)
+        return comments
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/forum/comment/add")
+async def addComment(commentInfo: commentInfo):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (commentInfo.token,))
+        commentOwnerID = cur.fetchone()[0]
+        cur.execute("INSERT INTO forum_comments(forum, content, owner, anonymous, posted_at) VALUES (%s, %s, %s, %s, %s)", (commentInfo.forumID, commentInfo.content, commentOwnerID, commentInfo.anonymous, datetime.datetime.now()))
+        conn.commit()
+        return True
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forum/comment/remove/{commentID}")
+async def removeComment(commentID: int):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM forum_comments WHERE id = %s", (commentID,))
+        conn.commit()
+        return True
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/forum/comment/edit")
+async def editComment(commentInfo: editCommentInfo):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (commentInfo.token,))
+        userID = cur.fetchone()[0]
+        if not userID: return False
+        cur.execute("UPDATE forum_comments SET content = %s WHERE id = %s AND owner = %s", (commentInfo.content, commentInfo.commentID, userID))
+        conn.commit()
+        return True
     except (Exception, psycopg2.DatabaseError):
         return False
     finally:

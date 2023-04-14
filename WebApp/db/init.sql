@@ -16,7 +16,7 @@ INSERT INTO students (id, password, fullname, findingList, course, authToken, fo
     ('63070994', '994', 'นางสาวสมสมร นอนหลับไว', '{}', ARRAY['SDTE', 'SVV'], 'test456', '{}', '{}'),
     ('63070993', '333', 'นายสมชาย หมายเกรดเอ', ARRAY['CBEAD'], ARRAY['SDTE', 'SVV', 'CBEAD'], 'test226', '{}', '{}'),
     ('63070992', '222', 'นายมาโนช มานู่น', ARRAY['CBEAD'], ARRAY['SDTE', 'SVV', 'CBEAD'], 'test536', '{}', '{}'),
-    ('63070888', '123456', 'นายมาเก๊า มาไว', '{}', ARRAY['SDTE'], 'test231', '{}', '{}'),
+    ('63070888', '123456', 'นายมาเก๊า โอนไว', '{}', ARRAY['SDTE'], 'test231', '{}', '{}'),
     ('63070164', '444', 'นายคิม จองมึน', '{}', ARRAY['SDTE'], 'test225', '{}', '{}'),
     ('63070160', '666', 'นายสมอ เท่ห์เสมอ', '{}', ARRAY['SDTE'], 'test335', '{}', '{}');
 
@@ -54,9 +54,10 @@ CREATE TABLE forums (
 );
 
 INSERT INTO forums (title, content, imagePath, owner, anonymous, posted_at, course) VALUES
-    ('ทำโปรเจ็คอยู่ดีๆโดนแบน AWS ทำไงดีครับ', 'คือผมทำโปรเจ็คอยู่ดีๆแล้ว AWS เด้งแล้วมีเมลส่งมาว่าโดนปิด Account ครับ', ARRAY['awsDeactivation.png'], '63070160', true, CURRENT_TIMESTAMP, 'SDTE');
+    ('ทำงานอยู่ดีๆโดนแบน AWS ทำไงดีครับ', 'คือผมทำงานอยู่ดีๆแล้ว AWS เด้งแล้วมีเมลส่งมาว่าโดนปิด Account ครับ 😂', ARRAY['awsDeactivation.png'], '63070160', true, CURRENT_TIMESTAMP, 'SDTE'),
+    ('ระหว่าง Kubernetes กับ Docker', 'สอบถามครับ ระหว่าง Kubernetes กับ Docker ผมจะเอาสมองส่วนไหนไปจำดีครับ ?', '{}', '63070888', false, CURRENT_TIMESTAMP, 'SDTE');
 
-CREATE TABLE comments (
+CREATE TABLE forum_comments (
     id SERIAL PRIMARY KEY,
     forum INT NOT NULL,
     content TEXT NOT NULL,
@@ -65,5 +66,25 @@ CREATE TABLE comments (
     posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO comments (forum, content, owner, anonymous, posted_at) VALUES
+INSERT INTO forum_comments (forum, content, owner, anonymous, posted_at) VALUES
     (1, 'อยากโดนด้วยเลยครับ', '63070164', true, CURRENT_TIMESTAMP);
+
+CREATE TABLE forum_likes (
+    forum INT NOT NULL,
+    like_from VARCHAR(255) NOT NULL
+);
+
+INSERT INTO forum_likes (forum, like_from) VALUES
+    (1, '63070164'),
+    (1, '63070160'),
+    (1, '63070999'),
+    (1, '63070998'),
+    (1, '63070888'),
+    (2, '63070999'),
+    (2, '63070998'),
+    (2, '63070994'),
+    (2, '63070993'),
+    (2, '63070992'),
+    (2, '63070888'),
+    (2, '63070160'),
+    (2, '63070164');

@@ -16,7 +16,28 @@ a {
 }
 
 .commentContent {
-    margin-left: 40px;
+    margin-left: 45px;
+}
+
+.commentActionContainer {
+    float: right;
+    margin: 10px;
+}
+
+.commentActionContainer i{
+    cursor: pointer;
+}
+
+.commentEdit:hover {
+    color: goldenrod !important;
+}
+
+.commentCheck:hover {
+    color: green !important;
+}
+
+.commentRemove:hover {
+    color: red !important;
 }
 
 #cardNavigationGroup .card:not(#scoreboard) {
