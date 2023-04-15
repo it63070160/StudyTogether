@@ -17,6 +17,39 @@
 </head>
 <body>
     <div id="app">
+        <!-- Create Forum Modal -->
+        <div class="modal fade" id="createForumModal" tabindex="-1" aria-labelledby="createForumModalLabel" aria-hidden="true" ref="vuemodal">
+            <div class="modal-dialog modal-dialog-scrollable modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="createForumModalLabel">Create Forum</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="exampleFormControlInput1" class="form-label">Title</label>
+                            <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="Your forum topic..." required v-model="createTitle">
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="file" class="form-control" id="inputGroupFile02">
+                            <label class="input-group-text" for="inputGroupFile02">Upload</label>
+                        </div>
+                        <div class="form-check form-switch form-check-reverse" style="float: right;">
+                            <input class="form-check-input" type="checkbox" role="switch" id="commentAnonymous" v-model="createAnonymous">
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Anonymous</label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="exampleFormControlTextarea1" class="form-label">Forum Content</label>
+                            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" required v-model="createInput"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-success">Create</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Comments Modal -->
         <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsModalLabel" aria-hidden="true" ref="vuemodal">
             <div class="modal-dialog modal-dialog-scrollable modal-xl">
@@ -54,20 +87,22 @@
                         <div class="forumAction mt-2 mb-2">
                             <div class="row text-center">
                                 <div class="col">
-                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forumModal.forum_like > 0">({{'{{forumModal.forum_like}}'}})</span></a>
+                                    <a class="list-group-item likeBtn" @click="handleLike(forumModal.id, true)" v-if="userLikeList.indexOf(forumModal.id)<0"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forumModal.forum_like > 0">({{'{{forumModal.forum_like}}'}})</span></a>
+                                    <a class="list-group-item unLikeBtn" @click="handleLike(forumModal.id, true)" v-else><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forumModal.forum_like > 0">({{'{{forumModal.forum_like}}'}})</span></a>
                                 </div>
                                 <div class="col">
                                     <a class="list-group-item"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;" v-if="forumModal.commentCount > 0">({{'{{forumModal.commentCount}}'}})</span></a>
                                 </div>
                                 <div class="col">
-                                    <a class="list-group-item"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                    <a class="list-group-item saveBtn" @click="handleSaveForum(forumModal.id, true)" v-if="userSaveList.indexOf(forumModal.id)<0"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                    <a class="list-group-item unSaveBtn" @click="handleSaveForum(forumModal.id, true)" v-else><i class="fa-solid fa-bookmark"></i>  Save</a>
                                 </div>
                             </div>
                         </div>
                         <hr>
                         <div class="forumComments">
                             <div class="form-check form-switch form-check-reverse" style="float: right;">
-                                <input class="form-check-input" type="checkbox" role="switch" id="commentAnnonymous" v-model="commentAnnonymous">
+                                <input class="form-check-input" type="checkbox" role="switch" id="commentAnonymous" v-model="commentAnonymous">
                                 <label class="form-check-label" for="flexSwitchCheckDefault">Anonymous</label>
                             </div>
                             <div class="input-group">
@@ -162,18 +197,18 @@
                 <div class="card-header">
                     <ul class="nav nav-tabs card-header-tabs">
                         <li class="nav-item">
-                        <a class="nav-link active" aria-current="true" href="#">Forums</a>
+                        <a class="nav-link" :class="{'active': showPage == 'forums'}" @click="showPage = 'forums'; getForums(); checkLike()">Forums</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link" href="#">My Forums</a>
+                        <a class="nav-link" :class="{'active': showPage == 'myForums'}" @click="showPage = 'myForums'; getMyForums(); checkLike()">My Forums</a>
                         </li>
                         <li class="nav-item">
-                        <a class="nav-link">Saved</a>
+                        <a class="nav-link" :class="{'active': showPage == 'saved'}" @click="showPage = 'saved'; checkSave(); checkLike()">Saved</a>
                         </li>
                     </ul>
                 </div>
                 <div class="card-body h-100 overflow-auto">
-                    <div class="card h-100 mb-3" v-for="forum in forumList">
+                    <div class="card h-100 mb-3" v-for="forum in forumList" v-if="showPage == 'forums'">
                         <div class="card-body">
                             <h5 class="card-title">{{'{{forum.title}}'}} </h5>
                             <small class="text-body-secondary" v-if="forum.anonymous == true">Posted by Anonymous <img src="{{ url_for('static', filename = 'img/anonymousProfile.png') }}" style="width: 25px; height: 25px;"> - {{'{{forum.posted_at}}'}}</small>
@@ -191,20 +226,84 @@
                         <div class="card-footer">
                             <div class="row">
                                 <div class="col">
-                                    <a class="list-group-item"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
+                                    <a class="list-group-item likeBtn" @click="handleLike(forum.id, false)" v-if="userLikeList.indexOf(forum.id)<0"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
+                                    <a class="list-group-item unLikeBtn" @click="handleLike(forum.id, false)" v-else><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
                                 </div>
                                 <div class="col">
                                     <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal" @click="fetchModalInfo(forum.id)"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;" v-if="forum.commentCount > 0">({{'{{forum.commentCount}}'}})</span></a>
                                 </div>
                                 <div class="col">
-                                    <a class="list-group-item"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                    <a class="list-group-item saveBtn" @click="handleSaveForum(forum.id, false)" v-if="userSaveList.filter((value)=>value.id==forum.id).length < 1"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                    <a class="list-group-item unSaveBtn" @click="handleSaveForum(forum.id, false)" v-else><i class="fa-solid fa-bookmark"></i>  Save</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card h-100 mb-3" v-for="forum in myForumList" v-else-if="showPage == 'myForums'">
+                        <div class="card-body">
+                            <h5 class="card-title">{{'{{forum.title}}'}} </h5>
+                            <small class="text-body-secondary" v-if="forum.anonymous == true">Posted by Anonymous <img src="{{ url_for('static', filename = 'img/anonymousProfile.png') }}" style="width: 25px; height: 25px;"> - {{'{{forum.posted_at}}'}}</small>
+                            <small class="text-body-secondary" v-else>
+                                Posted by {{'{{forum.ownerName}}'}} 
+                                <img src="{{ url_for('static', filename = 'img/boyProfile.png') }}" style="width: 25px; height: 25px;" v-if="forum.ownerName.indexOf('นาย')>=0">
+                                <img src="{{ url_for('static', filename = 'img/girlProfile.png') }}" style="width: 25px; height: 25px;" v-else>
+                                - {{'{{forum.posted_at}}'}}
+                            </small>
+                            <p class="card-text">{{'{{forum.content}}'}}</p>
+                            <div class="image" v-if="forum.imagePath.length > 0">
+                                <img v-for="path in forum.imagePath" :src="path">
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col">
+                                    <a class="list-group-item likeBtn" @click="handleLike(forum.id, false)" v-if="userLikeList.indexOf(forum.id)<0"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
+                                    <a class="list-group-item unLikeBtn" @click="handleLike(forum.id, false)" v-else><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal" @click="fetchModalInfo(forum.id)"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;" v-if="forum.commentCount > 0">({{'{{forum.commentCount}}'}})</span></a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item saveBtn" @click="handleSaveForum(forum.id, false)" v-if="userSaveList.filter((value)=>value.id==forum.id).length < 1"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                    <a class="list-group-item unSaveBtn" @click="handleSaveForum(forum.id, false)" v-else><i class="fa-solid fa-bookmark"></i>  Save</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card h-100 mb-3" v-for="forum in userSaveList" v-else-if="showPage == 'saved'">
+                        <div class="card-body">
+                            <h5 class="card-title">{{'{{forum.title}}'}} </h5>
+                            <small class="text-body-secondary" v-if="forum.anonymous == true">Posted by Anonymous <img src="{{ url_for('static', filename = 'img/anonymousProfile.png') }}" style="width: 25px; height: 25px;"> - {{'{{forum.posted_at}}'}}</small>
+                            <small class="text-body-secondary" v-else>
+                                Posted by {{'{{forum.ownerName}}'}} 
+                                <img src="{{ url_for('static', filename = 'img/boyProfile.png') }}" style="width: 25px; height: 25px;" v-if="forum.ownerName.indexOf('นาย')>=0">
+                                <img src="{{ url_for('static', filename = 'img/girlProfile.png') }}" style="width: 25px; height: 25px;" v-else>
+                                - {{'{{forum.posted_at}}'}}
+                            </small>
+                            <p class="card-text">{{'{{forum.content}}'}}</p>
+                            <div class="image" v-if="forum.imagePath.length > 0">
+                                <img v-for="path in forum.imagePath" :src="path">
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col">
+                                    <a class="list-group-item likeBtn" @click="handleLike(forum.id, false)" v-if="userLikeList.indexOf(forum.id)<0"><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
+                                    <a class="list-group-item unLikeBtn" @click="handleLike(forum.id, false)" v-else><i class="fa-solid fa-thumbs-up"></i>  Like <span style="font-size: .75rem;" v-if="forum.forum_like > 0">({{'{{forum.forum_like}}'}})</span></a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item" data-bs-target="#commentsModal" data-bs-toggle="modal" @click="fetchModalInfo(forum.id)"><i class="fa-regular fa-comment"></i>  Comments <span style="font-size: .75rem;" v-if="forum.commentCount > 0">({{'{{forum.commentCount}}'}})</span></a>
+                                </div>
+                                <div class="col">
+                                    <a class="list-group-item saveBtn" @click="handleSaveForum(forum.id, false)" v-if="userSaveList.filter((value)=>value.id==forum.id).length < 1"><i class="fa-regular fa-bookmark"></i>  Save</a>
+                                    <a class="list-group-item unSaveBtn" @click="handleSaveForum(forum.id, false)" v-else><i class="fa-solid fa-bookmark"></i>  Save</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-footer text-body-secondary">
-                    <button class="btn btn-outline-success" style="float: right;" @click="">+</button>
+                    <button class="btn btn-outline-success" style="float: right;" data-bs-target="#createForumModal" data-bs-toggle="modal">+</button>
                 </div>
             </div>
         </div>
@@ -217,7 +316,10 @@
                 return {
                     courseName: 'myCourse',
                     myCourseList: [],
+                    showPage : 'forums',
                     forumList: [],
+                    myForumList: [],
+                    mySaveList: [],
                     forumModal: {
                         'id': 0,
                         'title': '',
@@ -233,9 +335,13 @@
                     forumModalCommentList: [],
                     commentInput: "",
                     commentEditInput: "",
-                    commentAnnonymous: false,
+                    commentAnonymous: false,
+                    createInput: "",
+                    createAnonymous: false,
                     confirmRemoveList: [],
                     confirmEditList: [],
+                    userSaveList: [],
+                    userLikeList: [],
                     userID: "",
                     fullname: "",
                     fullCourseName: [
@@ -253,10 +359,10 @@
                     window.location.href = "/"
                 },
                 handleComment(forumID){
-                    addComment({'forumID':forumID, 'content':this.commentInput, 'token':localStorage.getItem("authToken"), 'anonymous':this.commentAnnonymous}).then((response)=>{
+                    addComment({'forumID':forumID, 'content':this.commentInput, 'token':localStorage.getItem("authToken"), 'anonymous':this.commentAnonymous}).then((response)=>{
                         if(response.data == true){
                             this.commentInput = ''
-                            this.commentAnnonymous = false
+                            this.commentAnonymous = false
                             this.getForum(forumID)
                             getForumComments(forumID).then((response)=>{
                                 this.forumModalCommentList = [...response.data]
@@ -296,8 +402,58 @@
                         }
                     })
                 },
+                handleSaveForum(forumID, isInModal){
+                    handleSaveForum(forumID, localStorage.getItem("authToken")).then((response)=>{
+                        if(response.data == true){
+                            this.checkSave()
+                        }
+                    })
+                },
+                handleLike(forumID, isInModal){
+                    handleLike(forumID, localStorage.getItem("authToken")).then((response)=>{
+                        if(response.data == true){
+                            if(this.showPage == 'forums'){
+                                this.getForums()
+                            }else if(this.showPage == 'myForums'){
+                                this.getMyForums()
+                            }
+                            if(isInModal){
+                                this.fetchModalInfo(forumID)
+                            }
+                            this.checkLike()
+                        }
+                    })
+                },
                 checkURL(){
                     window.history.pushState("", "Study Together - Forums", (document.URL +"?course="+this.courseName));
+                },
+                checkSave(){
+                    getSave(this.courseName, localStorage.getItem("authToken")).then((response)=>{
+                        this.userSaveList = []
+                        response.data.forEach(value => {
+                            var newPath = [];
+                            for(let i=0; i<value.imagePath.length; i++){
+                                newPath.push("/static/img/"+value.imagePath[i])
+                            }
+                            this.userSaveList.push({
+                                'id': value.id,
+                                'title': value.title,
+                                'content': value.content,
+                                'imagePath': newPath,
+                                'forum_like': value.forum_like,
+                                'ownerID': value.ownerID,
+                                'ownerName': value.ownerName,
+                                'anonymous': value.anonymous,
+                                'posted_at': value.posted_at,
+                                'commentCount': value.commentCount
+                            })
+                        });
+                    })
+                },
+                checkLike(){
+                    getLike(localStorage.getItem("authToken")).then((response)=>{
+                        this.userLikeList = [...response.data]
+                    })
                 },
                 checkToken(){
                     var token = localStorage.getItem('authToken')
@@ -312,6 +468,8 @@
                                     if(this.myCourseList.indexOf(URLcourse) >= 0){
                                         this.courseName = URLcourse
                                         this.getForums()
+                                        this.checkLike()
+                                        this.checkSave()
                                     }else{
                                         this.courseName = "myCourse"
                                         window.history.pushState("", "Study Together", (document.URL.slice(0, document.URL.indexOf("?"))));
@@ -334,6 +492,29 @@
                                 newPath.push("/static/img/"+value.imagePath[i])
                             }
                             this.forumList.push({
+                                'id': value.id,
+                                'title': value.title,
+                                'content': value.content,
+                                'imagePath': newPath,
+                                'forum_like': value.forum_like,
+                                'ownerID': value.ownerID,
+                                'ownerName': value.ownerName,
+                                'anonymous': value.anonymous,
+                                'posted_at': value.posted_at,
+                                'commentCount': value.commentCount
+                            })
+                        });
+                    })
+                },
+                getMyForums(){
+                    getMyForums(this.courseName, localStorage.getItem("authToken")).then((response)=>{
+                        this.myForumList = []
+                        response.data.forEach(value => {
+                            var newPath = [];
+                            for(let i=0; i<value.imagePath.length; i++){
+                                newPath.push("/static/img/"+value.imagePath[i])
+                            }
+                            this.myForumList.push({
                                 'id': value.id,
                                 'title': value.title,
                                 'content': value.content,
@@ -388,7 +569,12 @@
                 this.checkToken()
                 const commentsModal = document.getElementById('commentsModal')
                 commentsModal.addEventListener('hidden.bs.modal', event => {
-                    this.getForums()
+                    this.commentInput = ''
+                    if(this.showPage == 'forums'){
+                        this.getForums()
+                    }else if(this.showPage == 'myForums'){
+                        this.getMyForums()
+                    }
                 })
             }
         }).mount('#app')

@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import psycopg2
 import secrets
-import pytz
 import datetime
 
 app = FastAPI()
@@ -406,9 +405,9 @@ async def removeRequestByReceiver(token: str, requestID: int):
     cur = conn.cursor()
     try:
         cur.execute("SELECT id FROM students WHERE authToken=%s", (token,))
-        receiver = cur.fetchone()[0]
+        receiver = cur.fetchone()
         if not receiver: return False
-        cur.execute("DELETE FROM requests WHERE id=%s AND receiver=%s", (requestID, receiver))
+        cur.execute("DELETE FROM requests WHERE id=%s AND receiver=%s", (requestID, receiver[0]))
         conn.commit()
         return True
     except (Exception, psycopg2.DatabaseError):
@@ -470,6 +469,49 @@ async def getForums(course: str):
     cur = conn.cursor()
     try:
         cur.execute("SELECT * FROM forums WHERE course = %s", (course,))
+        rows = cur.fetchall()
+        forums = []
+        for row in rows:
+            cur.execute("SELECT COUNT(id) FROM forum_comments WHERE forum = %s", (row[0],))
+            commentCount = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(forum) FROM forum_likes WHERE forum = %s", (row[0],))
+            forumLikes = cur.fetchone()[0]
+            cur.execute("SELECT fullname from students WHERE id = %s", (row[4],))
+            fullname = cur.fetchone()[0]
+            forum = {
+                'id': row[0],
+                'title': row[1],
+                'content': row[2],
+                'imagePath': row[3],
+                'forum_like': forumLikes,
+                'ownerID': row[4],
+                'ownerName': fullname,
+                'anonymous': row[5],
+                'posted_at': calculate_time(row[6]),
+                'commentCount': commentCount
+            }
+            forums.append(forum)
+        return forums
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forums/{course}/{token}")
+async def getMyForums(course: str, token: str):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (token,))
+        userID = cur.fetchone()
+        if not userID: return False
+        cur.execute("SELECT * FROM forums WHERE course = %s AND owner = %s", (course, userID[0]))
         rows = cur.fetchall()
         forums = []
         for row in rows:
@@ -620,11 +662,135 @@ async def editComment(commentInfo: editCommentInfo):
     cur = conn.cursor()
     try:
         cur.execute("SELECT id FROM students WHERE authToken = %s", (commentInfo.token,))
-        userID = cur.fetchone()[0]
+        userID = cur.fetchone()
         if not userID: return False
-        cur.execute("UPDATE forum_comments SET content = %s WHERE id = %s AND owner = %s", (commentInfo.content, commentInfo.commentID, userID))
+        cur.execute("UPDATE forum_comments SET content = %s WHERE id = %s AND owner = %s", (commentInfo.content, commentInfo.commentID, userID[0]))
         conn.commit()
         return True
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forum/save/{forumID}/{token}")
+async def handleSaveForum(forumID: int, token: str):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (token,))
+        userID = cur.fetchone()
+        if not userID: return False
+        cur.execute("SELECT * FROM students WHERE id = %s AND %s = ANY (saveForumList)", (userID[0], forumID))
+        checkList = cur.fetchone()
+        if not checkList:
+            cur.execute("UPDATE students SET saveForumList = saveForumList || %s WHERE id = %s ", ([forumID], userID[0],))
+        else:
+            cur.execute("UPDATE students SET saveForumList = array_remove(saveForumList, %s) WHERE id = %s ", (forumID, userID[0]))
+        conn.commit()
+        return True
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forum/saves/{course}/{token}")
+async def getSaves(course: str, token: str):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (token,))
+        userID = cur.fetchone()
+        if not userID: return False
+        cur.execute("SELECT saveForumList FROM students WHERE id = %s", (userID[0],))
+        student = cur.fetchone()
+        forums = []
+        for forumID in student[0]:
+            cur.execute("SELECT COUNT(id) FROM forum_comments WHERE forum = %s", (forumID,))
+            commentCount = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(forum) FROM forum_likes WHERE forum = %s", (forumID,))
+            forumLikes = cur.fetchone()[0]
+            cur.execute("SELECT * FROM forums WHERE course = %s AND id = %s", (course, forumID))
+            row = cur.fetchone()
+            cur.execute("SELECT fullname from students WHERE id = %s", (row[4],))
+            fullname = cur.fetchone()[0]
+            forum = {
+                'id': row[0],
+                'title': row[1],
+                'content': row[2],
+                'imagePath': row[3],
+                'forum_like': forumLikes,
+                'ownerID': row[4],
+                'ownerName': fullname,
+                'anonymous': row[5],
+                'posted_at': calculate_time(row[6]),
+                'commentCount': commentCount
+            }
+            forums.append(forum)
+        return forums
+    # except (Exception, psycopg2.DatabaseError):
+    #     return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forum/like/{forumID}/{token}")
+async def handleLike(forumID: str, token: str):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (token,))
+        userID = cur.fetchone()
+        if not userID: return False
+        cur.execute("SELECT * FROM forum_likes WHERE forum = %s AND like_from = %s", (forumID, userID[0]))
+        likeCount = cur.fetchone()
+        if not likeCount:
+            cur.execute("INSERT INTO forum_likes VALUES (%s, %s)", (forumID, userID[0]))
+        else:
+            cur.execute("DELETE FROM forum_likes WHERE forum = %s AND like_from = %s", (forumID, userID[0]))
+        conn.commit()
+        return True
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/forum/like/{token}")
+async def getLike(token: str):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (token,))
+        userID = cur.fetchone()
+        if not userID: return False
+        cur.execute("SELECT * FROM forum_likes WHERE like_from = %s", (userID[0],))
+        rows = cur.fetchall()
+        likeList = []
+        for row in rows:
+            likeList.append(row[0])
+        return likeList
     except (Exception, psycopg2.DatabaseError):
         return False
     finally:

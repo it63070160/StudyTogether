@@ -9,8 +9,28 @@ function getForums(course){
     return axios.get(FORUMS_API_BASE_URL+course);
 }
 
+function getMyForums(course, token){
+    return axios.get(FORUMS_API_BASE_URL+course+"/"+token);
+}
+
 function getForumComments(forumID){
     return axios.get(FORUM_API_BASE_URL+"comments/"+forumID);
+}
+
+function handleSaveForum(forumID, token){
+    return axios.get(FORUM_API_BASE_URL+"save/"+forumID+"/"+token);
+}
+
+function getSave(course, token){
+    return axios.get(FORUM_API_BASE_URL+"saves/"+course+"/"+token);
+}
+
+function handleLike(forumID, token){
+    return axios.get(FORUM_API_BASE_URL+"like/"+forumID+"/"+token);
+}
+
+function getLike(token){
+    return axios.get(FORUM_API_BASE_URL+"like/"+token);
 }
 
 function addComment(commentInfo){
