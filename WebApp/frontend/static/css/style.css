@@ -3,6 +3,99 @@ a {
     cursor: pointer;
 }
 
+body {
+    background-color: #F7FFE1 !important;
+}
+
+
+.nav-link.forums {
+    color: lightseagreen !important;
+    text-shadow: 1px 1px black;
+}
+
+.nav-link.myForums {
+    color: lightskyblue !important;
+    text-shadow: 1px 1px black;
+}
+
+.nav-link.saved {
+    color: wheat !important;
+    text-shadow: 1px 1px black;
+}
+
+.card-header-tabs .nav-link.active {
+    text-shadow: 1px 1px lightpink;
+    background-color: aliceblue !important;
+    border-bottom-color: aliceblue !important;
+}
+
+.navbar {
+    background-color: #e47c20 !important;
+}
+
+.navbar-nav .nav-item .nav-link.active {
+    color: white !important;
+}
+
+.navbar-nav .nav-item:hover :not(.nav-link.dropdown-toggle):not(.disabled):not(.nav-item .nav-link.active){
+    text-shadow: 1px 1px white !important;
+}
+
+.navbar-brand {
+    color: white !important;
+    text-shadow: 2px 1px black !important;
+    font-size: 2rem !important;
+}
+
+.navbar-brand:hover {
+    opacity: 0.5 !important;
+}
+
+.card-header.announcements {
+    background-color: #4F4F4F;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.card-header.findGroups {
+    background-color: darkorange;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.card-header.forums {
+    background-color: lightcyan;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.card-footer.forums {
+    background-color: lightcyan;
+}
+
+.card-header-tabs {
+    margin-right: 0 !important;   
+    margin-left: 0 !important;
+    padding-right: 0 !important;   
+    padding-left: 0 !important;   
+}
+
+.circleStickyBtn {
+    border-radius: 50% !important;
+    padding: 19px 20px !important;
+    margin: 30px !important;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+}
+
+.circleBtn {
+    border-radius: 50% !important;
+    padding: 9px 10px !important;
+}
+
 .commentBtn {
     width: 30px !important;
     height: 30px !important;

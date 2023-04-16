@@ -47,6 +47,13 @@ class editCommentInfo(BaseModel):
     content: str
     token: str
 
+class forumInfo(BaseModel):
+    course: str
+    title: str
+    content: str
+    anonymous: bool
+    token: str
+
 def calculate_time(time):
     timestamp_str = time.strftime('%Y-%m-%d %H:%M:%S')
     timestamp = datetime.datetime.fromisoformat(timestamp_str)
@@ -535,6 +542,28 @@ async def getMyForums(course: str, token: str):
             }
             forums.append(forum)
         return forums
+    except (Exception, psycopg2.DatabaseError):
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/forum/create")
+async def createForum(forumInfo: forumInfo):
+    conn = psycopg2.connect(
+        host="db",
+        database="myapp",
+        user="postgres",
+        password="postgres"
+    )
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM students WHERE authToken = %s", (forumInfo.token,))
+        userID = cur.fetchone()
+        if not userID: return False
+        cur.execute("INSERT INTO forums (title, content, owner, anonymous, posted_at, course) VALUES (%s, %s, %s, %s, %s, %s)", (forumInfo.title, forumInfo.content, userID[0], forumInfo.anonymous, datetime.datetime.now(), forumInfo.course))
+        conn.commit()
+        return True
     except (Exception, psycopg2.DatabaseError):
         return False
     finally:

@@ -45,7 +45,7 @@ CREATE TABLE forums (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    imagePath TEXT[] NOT NULL,
+    imagePath TEXT[] NOT NULL DEFAULT '{}',
     owner VARCHAR(255) NOT NULL,
     anonymous BOOLEAN NOT NULL DEFAULT false,
     posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -13,7 +13,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename = 'js/Students.js') }}"></script>
     <title>Study Together</title>
 </head>
-<body style="background-color: #F7FFE1">
+<body>
     <div id="app">
         <!-- Login Modal -->
         <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -29,7 +29,7 @@
                                 <div class="mb-3 row">
                                     <label for="validationServerUsername" class="form-label">Student ID</label>
                                     <div class="input-group has-validation">
-                                        <input type="text" class="form-control" :class="{'is-invalid': invalidLoginID}" v-model="loginID" required>
+                                        <input type="text" class="form-control" :class="{'is-invalid': invalidLoginID}" v-model="loginID" required autofocus>
                                         <div id="validationServerUsernameFeedback" class="invalid-feedback">
                                             กรุณากรอกรหัสประจำตัวนักศึกษา
                                         </div>
@@ -104,44 +104,41 @@
                 </div>
             </div>
         </div>
-        <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color:skyblue !important;">
+        <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#" @click="courseName='myCourse'">Study Together</a>
+                <a class="navbar-brand" @click="home_navigation">Study Together</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"></a>
-                        </li>
-                        <li class="nav-item dropdown" v-if="myCourseList.length == 0">
+                        <li class="nav-item ms-2 dropdown" v-if="myCourseList.length == 0">
                             <select class="nav-link dropdown-toggle" v-model="courseName" disabled>
                                 <option value="myCourse" selected disabled style="text-align: center;">Please Login or Join a course</option>
                             </select>
                         </li>
-                        <li class="nav-item dropdown" v-else>
+                        <li class="nav-item ms-2 dropdown" v-else>
                             <select class="nav-link dropdown-toggle" v-model="courseName" @change="checkURL">
                                 <option value="myCourse" selected disabled style="text-align: center;">My Course</option>
                                 <option v-for="course in myCourseList" :value="course">{{'{{fullCourseName.filter((value)=>(value.shortName==course))[0].longName}}'}}</option>
                             </select>
                         </li>
-                        <li class="nav-item" v-if="courseName!='myCourse'">
+                        <li class="nav-item ms-2" v-if="courseName!='myCourse'">
                             <a class="nav-link active">Home</a>
                         </li>
-                        <li class="nav-item" v-if="courseName!='myCourse'">
+                        <li class="nav-item ms-2" v-if="courseName!='myCourse'">
                             <a class="nav-link" @click="forums_navigation">Forums</a>
                         </li>
-                        <li class="nav-item" v-if="courseName!='myCourse'">
+                        <li class="nav-item ms-2" v-if="courseName!='myCourse'">
                             <a class="nav-link" @click="findGroups_navigation">Find Groups</a>
                         </li>
-                        <li class="nav-item" v-if="courseName!='myCourse'">
+                        <li class="nav-item ms-2" v-if="courseName!='myCourse'">
                             <a class="nav-link disabled">Leaderboard</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav" v-if="userID!=''">
                         <li class="nav-item dropdown-center">
-                          <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                          <button class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                             it{{'{{userID}}'}}
                           </button>
                           <ul class="dropdown-menu dropdown-menu-end">
@@ -152,7 +149,7 @@
                     </ul>
                     <ul class="navbar-nav" v-else>
                         <li class="nav-item dropdown-center">
-                            <button class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 Login / Sign Up
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
@@ -164,18 +161,18 @@
                 </div>
             </div>
         </nav>
-        <div class="container" v-if="courseName=='myCourse'" style="margin-bottom: 30px">
-            <h1>Welcome to Study Together Web Application</h1>
+        <div class="container" v-if="courseName=='myCourse'">
+            <h1 class="mt-5 mb-5 text-center">Welcome to Study Together Web Application</h1>
         </div>
-        <div class="container" v-if="courseName!='myCourse'" style="margin-bottom: 30px">
-            <center><h1 class="mt-5">{{'{{fullCourseName.filter((value)=>(value.shortName==courseName))[0].longName}}'}}</h1></center>
-            <div class="card text-center border-danger h-50" style="min-height: 41rem">
-                <div class="card-header" style="background-color: #4F4F4F; color: #FFFFFF">
+        <div class="container" v-if="courseName!='myCourse'">
+            <h1 class="mt-5 mb-5 text-center">{{'{{fullCourseName.filter((value)=>(value.shortName==courseName))[0].longName}}'}}</h1>
+            <div class="card text-center border-warning h-50" style="min-height: 41rem">
+                <div class="card-header announcements">
                     📣 Announcements
                 </div>
                 <div class="card-body overflow-auto" v-if="courseName=='SDTE'" style="background-color: #808080">
                     <a class="sticky-top" href="#" target="_blank">
-                        <div class="card text-bg-secondary border-warning mb-3" style="background-color: #510785 !important;">
+                        <div class="card text-bg-secondary border-danger mb-3" style="background-color: #510785 !important;">
                             <div class="card-header">
                                 <i class="fa-brands fa-google"></i> Google Form <i class="fa-solid fa-thumbtack" style="color: #ff0019; float: right;"></i>
                             </div>
@@ -216,7 +213,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body overflow-auto" v-if="courseName=='SVV'">
+                <div class="card-body overflow-auto" v-if="courseName=='SVV'" style="background-color: #808080">
                     <a href="#">
                         <div class="card text-bg-secondary mb-3" style="background-color: #2D8CFF !important;">
                             <div class="card-header">
@@ -228,7 +225,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="card-body overflow-auto" v-if="courseName=='CBEAD'">
+                <div class="card-body overflow-auto" v-if="courseName=='CBEAD'" style="background-color: #808080">
                     <a href="#">
                         <div class="card text-bg-secondary mb-3" style="background-color: #2D8CFF !important;">
                             <div class="card-header">
@@ -252,7 +249,7 @@
                             <div class="card-footer" style="background-color: #487DCA">
                                 <small class="text-body-secondary">
                                     Popular Forum: 
-                                    <cite title="Created by it63070999">
+                                    <cite title="Created by Anonymous">
                                         <a href="#" v-if="courseName=='SDTE'" style="color: #FFFFFF" onMouseOver="this.style.color='#FFF993'" onMouseOut="this.style.color='#FFFFFF'">{{'{{popularForum_SDTE}}'}}</a>
                                         <a href="#" v-if="courseName=='SVV'" style="color: #FFFFFF" onMouseOver="this.style.color='#FFF993'" onMouseOut="this.style.color='#FFFFFF'">{{'{{popularForum_SVV}}'}}</a>
                                         <a href="#" v-if="courseName=='CBEAD'" style="color: #FFFFFF" onMouseOver="this.style.color='#FFF993'" onMouseOut="this.style.color='#FFFFFF'">{{'{{popularForum_CBEAD}}'}}</a>
@@ -413,6 +410,8 @@
                                         window.history.pushState("", "Study Together", (document.URL.slice(0, document.URL.indexOf("?"))));
                                     }
                                 }
+                            }else{
+                                this.handleLogout()
                             }
                         })
                     }
@@ -420,6 +419,12 @@
                 checkURL(){
                     this.getAvailableStudents()
                     window.history.pushState("", "Study Together", (document.URL + "?course="+this.courseName));
+                },
+                brand_navigation(){
+                    window.location.href = "/"
+                },
+                home_navigation(){
+                    window.location.href = "/?course="+this.courseName
                 },
                 findGroups_navigation(){
                     window.location.href = "/findGroups?course="+this.courseName

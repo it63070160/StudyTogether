@@ -1,3 +1,4 @@
+// import urls from './Config.js';
 const STUDENT_API_BASE_URL = "http://localhost:8088/student/"
 const STUDENTS_API_BASE_URL = "http://localhost:8088/students/"
 
