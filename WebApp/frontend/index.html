@@ -13,7 +13,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename = 'js/Students.js') }}"></script>
     <title>Study Together</title>
 </head>
-<body>
+<body style="background-color: #F7FFE1">
     <div id="app">
         <!-- Login Modal -->
         <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -164,16 +164,16 @@
                 </div>
             </div>
         </nav>
-        <div class="container" v-if="courseName=='myCourse'">
+        <div class="container" v-if="courseName=='myCourse'" style="margin-bottom: 30px">
             <h1>Welcome to Study Together Web Application</h1>
         </div>
-        <div class="container" v-if="courseName!='myCourse'">
+        <div class="container" v-if="courseName!='myCourse'" style="margin-bottom: 30px">
             <center><h1 class="mt-5">{{'{{fullCourseName.filter((value)=>(value.shortName==courseName))[0].longName}}'}}</h1></center>
-            <div class="card text-center border-danger h-50">
-                <div class="card-header">
+            <div class="card text-center border-danger h-50" style="min-height: 41rem">
+                <div class="card-header" style="background-color: #4F4F4F; color: #FFFFFF">
                     📣 Announcements
                 </div>
-                <div class="card-body overflow-auto" v-if="courseName=='SDTE'">
+                <div class="card-body overflow-auto" v-if="courseName=='SDTE'" style="background-color: #808080">
                     <a class="sticky-top" href="#" target="_blank">
                         <div class="card text-bg-secondary border-warning mb-3" style="background-color: #510785 !important;">
                             <div class="card-header">
@@ -241,21 +241,21 @@
                     </a>
                 </div>
             </div>
-            <div class="row align-items-start" id="cardNavigationGroup">
+            <div class="row align-items-start" id="cardNavigationGroup" style="margin-bottom: 10px">
                 <div class="row row-cols-1 row-cols-md-3 g-4">
                     <div class="col">
                         <div class="card border-primary h-100" @click="forums_navigation">
-                            <div class="card-body">
+                            <div class="card-body" style="background-color: #5B9EFF; color: #FFFFFF">
                                 <h5 class="card-title">Forums</h5>
                                 <p class="card-text">สำหรับการพูดคุย ตั้งคำถาม ตอบข้อสงสัย กับอาจารย์ประจำวิชาหรือระหว่างนักศึกษา</p>
                             </div>
-                            <div class="card-footer">
+                            <div class="card-footer" style="background-color: #487DCA">
                                 <small class="text-body-secondary">
                                     Popular Forum: 
                                     <cite title="Created by it63070999">
-                                        <a href="#" v-if="courseName=='SDTE'">{{'{{popularForum_SDTE}}'}}</a>
-                                        <a href="#" v-if="courseName=='SVV'">{{'{{popularForum_SVV}}'}}</a>
-                                        <a href="#" v-if="courseName=='CBEAD'">{{'{{popularForum_CBEAD}}'}}</a>
+                                        <a href="#" v-if="courseName=='SDTE'" style="color: #FFFFFF" onMouseOver="this.style.color='#FFF993'" onMouseOut="this.style.color='#FFFFFF'">{{'{{popularForum_SDTE}}'}}</a>
+                                        <a href="#" v-if="courseName=='SVV'" style="color: #FFFFFF" onMouseOver="this.style.color='#FFF993'" onMouseOut="this.style.color='#FFFFFF'">{{'{{popularForum_SVV}}'}}</a>
+                                        <a href="#" v-if="courseName=='CBEAD'" style="color: #FFFFFF" onMouseOver="this.style.color='#FFF993'" onMouseOut="this.style.color='#FFFFFF'">{{'{{popularForum_CBEAD}}'}}</a>
                                     </cite>
                                 </small>
                             </div>
@@ -263,11 +263,11 @@
                     </div>
                     <div class="col">
                         <div class="card border-warning h-100" @click="findGroups_navigation">
-                            <div class="card-body">
+                            <div class="card-body" style="background-color: #FFB851; color: #FFFFFF">
                                 <h5 class="card-title">Find Groups</h5>
                                 <p class="card-text">สำหรับนักศึกษาที่ต้องการหากลุ่ม</p>
                             </div>
-                            <div class="card-footer">
+                            <div class="card-footer" style="background-color: #C28D41">
                                 <small class="text-body-secondary" v-if="availableStudents>0">Available: <span style="color: green; font-weight: bold;">{{'{{availableStudents}}'}}</span> Students</small>
                                 <small class="text-body-secondary" v-else>Available: <span style="color: red; font-weight: bold;">{{'{{availableStudents}}'}}</span> Student</span></small>
                             </div>
@@ -275,10 +275,10 @@
                     </div>
                     <div class="col">
                         <div class="card text-center border-danger h-100" id="scoreboard">
-                            <div class="card-header">
+                            <div class="card-header" style="background-color: #AF3333; color: #FFFFFF">
                                 Leaderboard
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" style="background-color: #FF5151; color: #FFFFFF">
                                 <blockquote class="blockquote mb-0">
                                     <p>Coming Soon ...</p>
                                 </blockquote>
