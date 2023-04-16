@@ -13,7 +13,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename = 'js/Students.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename = 'js/Requests.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename = 'js/Forums.js') }}"></script>
-    <title>Study Together - Forums</title>
+    <title>Stugether - Forums</title>
 </head>
 <body>
     <div id="app">
@@ -146,7 +146,7 @@
         </div>
         <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" @click="brand_navigation">Study Together</a>
+                <a class="navbar-brand" @click="brand_navigation">Stugether</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -186,7 +186,7 @@
             </div>
         </nav>
         <div class="container" v-if="courseName=='myCourse'">
-            <h1 class="mt-5 mb-5 text-center">Welcome to Study Together Web Application</h1>
+            <h1 class="mt-5 mb-5 text-center">Welcome to Stugether Web Application</h1>
         </div>
         <div class="container" v-if="courseName!='myCourse'">
             <h1 class="mt-5 mb-5 text-center">{{'{{fullCourseName.filter((value)=>(value.shortName==courseName))[0].longName}}'}} - Forums</h1>
@@ -439,7 +439,7 @@
                     })
                 },
                 checkURL(){
-                    window.history.pushState("", "Study Together - Forums", (document.URL +"?course="+this.courseName));
+                    window.history.pushState("", "Stugether - Forums", (document.URL +"?course="+this.courseName));
                 },
                 checkSave(){
                     getSave(this.courseName, localStorage.getItem("authToken")).then((response)=>{
@@ -486,7 +486,7 @@
                                         this.checkSave()
                                     }else{
                                         this.courseName = "myCourse"
-                                        window.history.pushState("", "Study Together", (document.URL.slice(0, document.URL.indexOf("?"))));
+                                        window.history.pushState("", "Stugether", (document.URL.slice(0, document.URL.indexOf("?"))));
                                     }
                                 }
                             }else{
