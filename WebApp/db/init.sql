@@ -2,7 +2,6 @@ CREATE TABLE students (
     id VARCHAR(255) PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
     fullname VARCHAR(255) NOT NULL,
-    findingGroup BOOLEAN NOT NULL DEFAULT true,
     findingList TEXT[] NOT NULL DEFAULT '{}',
     course TEXT[] NOT NULL DEFAULT '{}',
     authToken VARCHAR(255) NOT NULL,

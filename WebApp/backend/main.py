@@ -206,7 +206,7 @@ async def getFindingCount(course: str):
         password="postgres"
     )
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(id) FROM students WHERE findingGroup=true AND %s = ANY (findingList)", (course,))
+    cur.execute("SELECT COUNT(id) FROM students WHERE %s = ANY (findingList)", (course,))
     row = cur.fetchone()
     count = row[0]
     cur.close()
@@ -222,7 +222,7 @@ async def getFindingStudents(course: str):
         password="postgres"
     )
     cur = conn.cursor()
-    cur.execute("SELECT id, fullname FROM students WHERE findingGroup=true AND %s = ANY (findingList)", (course,))
+    cur.execute("SELECT id, fullname FROM students WHERE %s = ANY (findingList)", (course,))
     rows = cur.fetchall()
     availableStudents = []
     for row in rows:

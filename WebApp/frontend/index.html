@@ -405,6 +405,7 @@
                                     var URLcourse = document.URL.slice(document.URL.indexOf("?course=")+8, document.URL.length)
                                     if(this.myCourseList.indexOf(URLcourse) >= 0){
                                         this.courseName = URLcourse
+                                        this.getAvailableStudents()
                                     }else{
                                         this.courseName = "myCourse"
                                         window.history.pushState("", "Stugether", (document.URL.slice(0, document.URL.indexOf("?"))));

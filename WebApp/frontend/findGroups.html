@@ -243,8 +243,14 @@
                             }
                         })
                     }else{
-                        if(this.availableStudentList.filter((value, index)=>value.id==this.userID)[0].index != -1){
-                            this.availableStudentList.splice(this.availableStudentList.filter((value, index)=>value.id==this.userID)[0].index, 1)
+                        var removeID
+                        var student = this.availableStudentList.filter((value, index)=>{
+                            if(value.id==this.userID){
+                                removeID = index
+                            }
+                        })
+                        if(removeID >= 0){
+                            this.availableStudentList.splice(removeID, 1)
                         }
                         lookingForGroup(localStorage.getItem("authToken"), this.courseName, this.isLookingForGroup)
                     }
