@@ -125,7 +125,7 @@
                     <i class="fa-solid fa-users"></i>&nbsp;&nbsp;Available Students
                 </div>
                 <div class="card-body overflow-auto" style="background-color: antiquewhite;">
-                    <div class="card text-bg-light mb-3" v-for="student in availableStudentList">
+                    <div class="card text-bg-light mb-3" v-for="student in availableStudentList.slice().reverse()">
                         <div class="card-header">
                             <i class="fa-solid fa-id-card"></i>&nbsp;&nbsp;|&nbsp;{{'{{student.id}}'}} <i class="fa-solid fa-mars" style="color: #62DBFB;" v-if="student.fullname.indexOf('นาย')>=0"></i><i class="fa-solid fa-venus" style="color: #FE7AB6" v-else></i> | {{'{{student.fullname}}'}}
                             <div class="rightBtn-Container" v-if="student.id != userID">
@@ -234,7 +234,7 @@
                     if(this.isLookingForGroup){
                         checkPair(localStorage.getItem("authToken"), this.courseName).then((response)=>{
                             if(response.data == false){
-                                this.availableStudentList.unshift({"id": this.userID, "fullname": this.fullname})
+                                this.availableStudentList.push({"id": this.userID, "fullname": this.fullname})
                                 this.fetchReceive()
                                 lookingForGroup(localStorage.getItem("authToken"), this.courseName, this.isLookingForGroup)
                             }else{
@@ -243,7 +243,9 @@
                             }
                         })
                     }else{
-                        this.availableStudentList.splice(this.availableStudentList.filter((value, index)=>value.id==this.userID)[0].index, 1)
+                        if(this.availableStudentList.filter((value, index)=>value.id==this.userID)[0].index != -1){
+                            this.availableStudentList.splice(this.availableStudentList.filter((value, index)=>value.id==this.userID)[0].index, 1)
+                        }
                         lookingForGroup(localStorage.getItem("authToken"), this.courseName, this.isLookingForGroup)
                     }
                 },
